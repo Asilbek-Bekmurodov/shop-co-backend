@@ -8,6 +8,8 @@ import typeRoutes from "./routes/typeRoutes.js";
 
 import multer from "multer";
 import path from "path";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swagger.js";
 
 dotenv.config();
 
@@ -28,11 +30,24 @@ const storage = multer.diskStorage({
 
 export const upload = multer({ storage });
 
-app.use(cors());
+const corsOptions = {
+  origin: "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 app.use(express.json());
+
+// Public static
+app.use(express.static("public"));
 
 // Static files uchun — uploads papkasi ochiq bo‘lsin
 app.use("/uploads", express.static("uploads"));
+
+// Swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routesga multer ni qanday kiritish masalasi productRoutes’da bo‘ladi.
 // Shu sababli bu yerda multer middleware kiritilmaydi
@@ -40,6 +55,10 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/types", typeRoutes);
+
+app.get("/", (req, res) => {
+  res.sendFile(path.resolve("public", "index.html"));
+});
 
 const PORT = process.env.PORT || 5000;
 

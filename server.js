@@ -5,6 +5,7 @@ import cors from "cors";
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import typeRoutes from "./routes/typeRoutes.js";
+import apiLimiter from "./middleware/rateLimit.js";
 
 import multer from "multer";
 import path from "path";
@@ -14,6 +15,8 @@ import swaggerSpec from "./swagger.js";
 dotenv.config();
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 // --- Multer sozlash ---
 // uploads papkasi va fayl nomini sozlaymiz
@@ -39,6 +42,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 app.use(express.json());
+
+// Rate limit (DDOSga qarshi)
+app.use("/api", apiLimiter);
 
 // Public static
 app.use(express.static("public"));

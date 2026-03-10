@@ -141,9 +141,31 @@ export const uploadImage = (req, res) => {
 // --- 8. Yangi product yaratish (multer bilan rasm + ma'lumot birga) ---
 export async function createProductWithImages(req, res) {
   try {
+    const requiredFields = [
+      "title",
+      "description",
+      "price",
+      "type",
+      "category",
+      "colors",
+      "size",
+    ];
+
+    const missingFields = requiredFields.filter((field) => {
+      const value = req.body[field];
+      return value === undefined || value === null || String(value).trim() === "";
+    });
+
     // Fayl yuklanmagan bo‘lsa
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: "Rasmlar yuklanmagan" });
+      missingFields.push("images");
+    }
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: "Majburiy field(lar) yetishmayapti",
+        missingFields,
+      });
     }
 
     // Cloudinary URL larini olish
